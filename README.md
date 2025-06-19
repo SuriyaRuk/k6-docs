@@ -3,7 +3,7 @@
 ## 1. การติดตั้ง K6 ด้วย Docker
 
 ### ความต้องการ
-- Docker และ Docker Compose ติดตั้งแล้ว
+- Docker และ Docker Compose ที่ติดตั้งแล้ว
 
 ### วิธีการติดตั้ง
 
