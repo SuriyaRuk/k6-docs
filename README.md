@@ -89,9 +89,74 @@ docker-compose run -e K6_OUT=json=/results/result.json,csv=/results/result.csv k
 - **Error Rate**: อัตราข้อผิดพลาด
 - **Virtual Users**: จำนวน concurrent users
 
+## 6. การปรับแต่งระบบปฏิบัติการ (OS Tuning)
+
+สำหรับการทดสอบ load ที่มี concurrent users สูง ควรปรับแต่งระบบปฏิบัติการเพื่อรองรับการเชื่อมต่อจำนวนมาก
+
+### การปรับแต่งแบบอัตโนมัติ
+```bash
+# รัน OS tuning script (ต้องใช้ sudo)
+sudo ./scripts/tune-os.sh
+```
+
+### การปรับแต่งแบบ Manual
+
+#### 1. เพิ่ม File Descriptor Limits
+แก้ไขไฟล์ `/etc/security/limits.conf`:
+```
+* soft nofile 65536
+* hard nofile 65536
+* soft nproc 65536
+* hard nproc 65536
+```
+
+#### 2. ปรับแต่ง Network Parameters
+แก้ไขไฟล์ `/etc/sysctl.conf`:
+```
+# TCP connection limits
+net.core.somaxconn = 65535
+net.core.netdev_max_backlog = 5000
+net.ipv4.tcp_max_syn_backlog = 65535
+
+# TCP timeout settings
+net.ipv4.tcp_fin_timeout = 30
+net.ipv4.tcp_keepalive_time = 1200
+net.ipv4.tcp_tw_reuse = 1
+
+# Port range
+net.ipv4.ip_local_port_range = 1024 65535
+```
+
+#### 3. Apply Settings
+```bash
+# Apply sysctl settings
+sudo sysctl -p
+
+# Set current session limits
+ulimit -n 65536
+ulimit -u 65536
+```
+
+### Docker Configuration
+Docker Compose ได้รับการปรับแต่งแล้วใน `docker-compose.yml`:
+- `ulimits`: เพิ่ม file descriptor limits
+- `sysctls`: ปรับแต่ง network parameters
+- `privileged: true`: อนุญาตให้ container ใช้ system resources
+
+### การตรวจสอบการปรับแต่ง
+```bash
+# ตรวจสอบ file descriptor limit
+ulimit -n
+
+# ตรวจสอบ network settings
+sysctl net.core.somaxconn
+sysctl net.ipv4.tcp_fin_timeout
+```
+
 ## การใช้งาน
 
 1. Clone repository นี้
-2. สร้าง scripts ใน folder `scripts/`
-3. รัน `docker-compose up` หรือ command ตามต้องการ
-4. ดูผลลัพธ์ใน folder `results/`
+2. ปรับแต่งระบบปฏิบัติการ (แนะนำ): `sudo ./scripts/tune-os.sh`
+3. สร้าง scripts ใน folder `scripts/`
+4. รัน `docker-compose up` หรือ command ตามต้องการ
+5. ดูผลลัพธ์ใน folder `results/`

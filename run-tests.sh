@@ -6,6 +6,33 @@
 echo "🚀 K6 Load Test Runner"
 echo "====================="
 
+# ตรวจสอบและแนะนำการปรับแต่ง OS
+check_os_tuning() {
+    echo "🔧 Checking OS tuning..."
+    
+    local fd_limit=$(ulimit -n)
+    local proc_limit=$(ulimit -u)
+    
+    if [ "$fd_limit" -lt 65536 ] || [ "$proc_limit" -lt 65536 ]; then
+        echo "⚠️  OS tuning recommended for better performance:"
+        echo "   Current file descriptor limit: $fd_limit"
+        echo "   Current process limit: $proc_limit"
+        echo "   Run: sudo ./scripts/tune-os.sh"
+        echo ""
+        read -p "Continue without OS tuning? (y/N): " continue_without_tuning
+        if [[ ! "$continue_without_tuning" =~ ^[Yy]$ ]]; then
+            echo "❌ Exiting. Please run OS tuning first."
+            exit 1
+        fi
+    else
+        echo "✅ OS tuning detected (fd: $fd_limit, proc: $proc_limit)"
+    fi
+    echo ""
+}
+
+# เรียกใช้ function ตรวจสอบ OS tuning
+check_os_tuning
+
 # สร้าง results directory หากยังไม่มี
 mkdir -p results
 
@@ -17,8 +44,13 @@ run_test() {
     
     echo "📊 Running $test_name..."
     
-    # รัน test พร้อมเก็บผลลัพธ์ทั้ง JSON และ CSV
+    # รัน test พร้อมเก็บผลลัพธ์ทั้ง JSON และ CSV พร้อม OS tuning
     docker run --rm \
+        --ulimit nofile=65536:65536 \
+        --sysctl net.core.somaxconn=65535 \
+        --sysctl net.ipv4.tcp_fin_timeout=30 \
+        --sysctl net.ipv4.tcp_tw_reuse=1 \
+        --privileged \
         -v $(pwd)/scripts:/scripts \
         -v $(pwd)/results:/results \
         -e K6_OUT=json=/results/${test_name}_${timestamp}.json,csv=/results/${test_name}_${timestamp}.csv \
