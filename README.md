@@ -167,6 +167,95 @@ sysctl net.core.somaxconn
 sysctl net.ipv4.tcp_fin_timeout
 ```
 
+## 7. การรันแบบ Docker และส่งผลไปยัง Grafana
+
+### การตั้งค่า Grafana สำหรับรับข้อมูล K6
+
+#### วิธีที่ 1: ใช้ InfluxDB + Grafana
+```bash
+# สร้าง InfluxDB container
+docker run -d \
+  --name influxdb \
+  -p 8086:8086 \
+  -e INFLUXDB_DB=k6 \
+  influxdb:1.8
+
+# รัน K6 พร้อมส่งข้อมูลไปยัง InfluxDB
+docker run --rm \
+  --net=host \
+  -v $(pwd)/scripts:/scripts \
+  -v $(pwd)/results:/results \
+  grafana/k6 run \
+  --out influxdb=http://localhost:8086/k6 \
+  /scripts/basic-test.js
+```
+
+#### วิธีที่ 2: ใช้ Prometheus + Grafana
+```bash
+# รัน K6 พร้อม Prometheus metrics
+docker run --rm \
+  --net=host \
+  -v $(pwd)/scripts:/scripts \
+  -v $(pwd)/results:/results \
+  grafana/k6 run \
+  --out experimental-prometheus-rw \
+  /scripts/basic-test.js
+```
+
+#### วิธีที่ 3: ใช้ Docker Compose พร้อม Grafana Stack
+สร้างไฟล์ `docker-compose-grafana.yml`:
+```yaml
+version: '3.8'
+services:
+  influxdb:
+    image: influxdb:1.8
+    environment:
+      - INFLUXDB_DB=k6
+    ports:
+      - "8086:8086"
+  
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-storage:/var/lib/grafana
+  
+  k6:
+    image: grafana/k6:latest
+    command: run --out influxdb=http://influxdb:8086/k6 /scripts/basic-test.js
+    volumes:
+      - ./scripts:/scripts
+      - ./results:/results
+    depends_on:
+      - influxdb
+
+volumes:
+  grafana-storage:
+```
+
+### การรันพร้อม Grafana Dashboard
+```bash
+# รัน Grafana stack
+docker-compose -f docker-compose-grafana.yml up -d
+
+# รัน K6 test พร้อมส่งข้อมูลไปยัง InfluxDB
+docker-compose -f docker-compose-grafana.yml run k6 run \
+  --out influxdb=http://influxdb:8086/k6 \
+  /scripts/load-test.js
+
+# เข้าถึง Grafana ที่ http://localhost:3000 (admin/admin)
+```
+
+### การนำเข้า K6 Dashboard ใน Grafana
+1. เข้าสู่ Grafana (http://localhost:3000)
+2. ไปที่ Import Dashboard
+3. ใช้ ID: `2587` (K6 Load Testing Results)
+4. เลือก InfluxDB data source
+5. กำหนดชื่อ database เป็น `k6`
+
 ## การใช้งาน
 
 1. Clone repository นี้
@@ -174,6 +263,8 @@ sysctl net.ipv4.tcp_fin_timeout
 3. สร้าง scripts ใน folder `scripts/`
 4. รัน `docker-compose up` หรือ command ตามต้องการ
 5. ดูผลลัพธ์ใน folder `results/`
+6. (ตัวเลือก) ตั้งค่า Grafana dashboard สำหรับ real-time monitoring
+7. รัน Docker พร้อมส่งผลไปยัง Grafana สำหรับการติดตามแบบ real-time
 
 ## References
 
