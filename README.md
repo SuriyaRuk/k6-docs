@@ -160,3 +160,8 @@ sysctl net.ipv4.tcp_fin_timeout
 3. สร้าง scripts ใน folder `scripts/`
 4. รัน `docker-compose up` หรือ command ตามต้องการ
 5. ดูผลลัพธ์ใน folder `results/`
+
+## References
+
+1. [Fine-tune OS for K6 Load Testing](https://grafana.com/docs/k6/latest/set-up/fine-tune-os/)
+2. [K6 Reference Documentation](https://grafana.com/docs/k6/latest/reference/)
