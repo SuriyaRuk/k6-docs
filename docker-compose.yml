@@ -15,6 +15,18 @@ services:
       - '--web.enable-lifecycle'
       - '--enable-feature=remote-write-receiver'
 
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    depends_on:
+      - prometheus
+
   k6:
     image: grafana/k6:latest
     command: run /scripts/basic-test.js
@@ -40,3 +52,6 @@ services:
     privileged: true
     depends_on:
       - prometheus
+
+volumes:
+  grafana-storage:
