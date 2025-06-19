@@ -197,6 +197,7 @@ docker run --rm \
   --net=host \
   -v $(pwd)/scripts:/scripts \
   -v $(pwd)/results:/results \
+  -e K6_PROMETHEUS_RW_SERVER_URL=http://localhost:9090/api/v1/write \
   grafana/k6 run \
   --out experimental-prometheus-rw \
   /scripts/basic-test.js
