@@ -19,10 +19,10 @@ docker-compose run k6 run /scripts/basic-test.js
 #### วิธีที่ 2: ใช้ Docker Command
 ```bash
 # รัน K6 script
-docker run --rm -v $(pwd)/scripts:/scripts -v $(pwd)/results:/results grafana/k6 run /scripts/basic-test.js
+docker run --net=host --rm -v $(pwd)/scripts:/scripts -v $(pwd)/results:/results grafana/k6 run /scripts/basic-test.js
 
 # รันพร้อมเก็บผลลัพธ์
-docker run --rm -v $(pwd)/scripts:/scripts -v $(pwd)/results:/results -e K6_OUT=json=/results/result.json grafana/k6 run /scripts/basic-test.js
+docker run --net=host --rm -v $(pwd)/scripts:/scripts -v $(pwd)/results:/results -e K6_OUT=json=/results/result.json grafana/k6 run /scripts/basic-test.js
 ```
 
 ## 2. การรัน Script
