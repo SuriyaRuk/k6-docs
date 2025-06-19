@@ -94,4 +94,4 @@ docker-compose run -e K6_OUT=json=/results/result.json,csv=/results/result.csv k
 1. Clone repository นี้
 2. สร้าง scripts ใน folder `scripts/`
 3. รัน `docker-compose up` หรือ command ตามต้องการ
-4. ดูผลลัพธ์ใน folder `results/`# k6-docs
+4. ดูผลลัพธ์ใน folder `results/`
