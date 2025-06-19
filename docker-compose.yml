@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  k6:
+    image: grafana/k6:latest
+    command: run /scripts/basic-test.js
+    volumes:
+      - ./scripts:/scripts
+      - ./results:/results
+    environment:
+      - K6_OUT=json=/results/result.json
+    networks:
+      - k6-network
+
+networks:
+  k6-network:
+    driver: bridge
