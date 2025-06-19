@@ -23,6 +23,20 @@ docker run --net=host --rm -v $(pwd)/scripts:/scripts -v $(pwd)/results:/results
 
 # รันพร้อมเก็บผลลัพธ์
 docker run --net=host --rm -v $(pwd)/scripts:/scripts -v $(pwd)/results:/results -e K6_OUT=json=/results/result.json grafana/k6 run /scripts/basic-test.js
+
+# รันแบบกําหนด full options
+    docker run --rm \
+        --ulimit nofile=65536:65536 \
+        --sysctl net.core.somaxconn=65535 \
+        --sysctl net.ipv4.tcp_fin_timeout=30 \
+        --sysctl net.ipv4.tcp_tw_reuse=1 \
+        --privileged \
+        -v $(pwd)/scripts:/scripts \
+        -v $(pwd)/results:/results \
+        -e K6_OUT=json=/results/${test_name}_${timestamp}.json,csv=/results/${test_name}_${timestamp}.csv \
+        -e K6_WEB_DASHBOARD=true \
+        -e K6_WEB_DASHBOARD_EXPORT=/results/${test_name}_${timestamp}_report.html \
+        grafana/k6 run /scripts/${script_name}
 ```
 
 ## 2. การรัน Script

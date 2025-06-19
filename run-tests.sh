@@ -44,7 +44,7 @@ run_test() {
     
     echo "📊 Running $test_name..."
     
-    # รัน test พร้อมเก็บผลลัพธ์ทั้ง JSON และ CSV พร้อม OS tuning
+    # รัน test พร้อมเก็บผลลัพธ์ทั้ง JSON, CSV และ HTML report พร้อม OS tuning
     docker run --rm \
         --ulimit nofile=65536:65536 \
         --sysctl net.core.somaxconn=65535 \
@@ -54,9 +54,12 @@ run_test() {
         -v $(pwd)/scripts:/scripts \
         -v $(pwd)/results:/results \
         -e K6_OUT=json=/results/${test_name}_${timestamp}.json,csv=/results/${test_name}_${timestamp}.csv \
+        -e K6_WEB_DASHBOARD=true \
+        -e K6_WEB_DASHBOARD_EXPORT=/results/${test_name}_${timestamp}_report.html \
         grafana/k6 run /scripts/${script_name}
     
     echo "✅ $test_name completed. Results saved to results/ directory"
+    echo "📊 HTML report: results/${test_name}_${timestamp}_report.html"
     echo ""
 }
 
