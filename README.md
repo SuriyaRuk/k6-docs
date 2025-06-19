@@ -25,7 +25,7 @@ docker run --net=host --rm -v $(pwd)/scripts:/scripts -v $(pwd)/results:/results
 docker run --net=host --rm -v $(pwd)/scripts:/scripts -v $(pwd)/results:/results -e K6_OUT=json=/results/result.json grafana/k6 run /scripts/basic-test.js
 
 # รันแบบกําหนด full options
-    docker run --rm \
+docker run --rm \
         --ulimit nofile=65536:65536 \
         --sysctl net.core.somaxconn=65535 \
         --sysctl net.ipv4.tcp_fin_timeout=30 \
